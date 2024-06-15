@@ -5,6 +5,7 @@ import numpy as np
 import plotly.express as px
 import joblib
 from sklearn import metrics
+from sklearn.model_selection import train_test_split
 
 st.set_page_config(page_title="Prediksi Penjualan Barang Almey Petshop", layout="wide")
 # Create menu
@@ -27,10 +28,10 @@ row1_spacer1, row1_1, row1_spacer2, row1_2 = st.columns((0.1, 1.5, 0.1, 1.5))
 row0_spacer3, row3_0, row0_spacer4 = st.columns((0.1, 3.2, 0.1))
 
 # Load dataset
-df = pd.read_csv('dataset.csv')
+df = pd.read_csv('dataset_new1.csv')
 
 # Model
-model = pd.read_pickle('model_svr.pkl')
+model = pd.read_pickle('model_svr_new.pkl')
 
 # Handle selected option
 if selected == "Home":
@@ -55,21 +56,21 @@ elif selected == "Data Visualisation":
     # Data Visualisasi dengan plotly
     with row1_1:
         st.subheader('Pilih fitur yang ingin ditampilkan histogramnya')
-        fitur = st.selectbox('Fitur', ('Stok_1', 'Stok_2', 'Stok_3'))
+        fitur = st.selectbox('Fitur', ('Stok_1', 'Stok_2', 'Stok_3', 'Stok_4', 'Stok_5', 'Stok_6', 'Stok_7', 'Stok_8', 'Stok_9', 'Stok_10', 'Stok_11', 'Stok_12', 'Stok_13', 'Stok_14', 'Stok_15'))
         fig = px.histogram(df, x=fitur, marginal='box', hover_data=df.columns)
         st.plotly_chart(fig)
     with row1_2:
         st.subheader('Pilih fitur yang ingin ditampilkan scatter plotnya')
-        fitur1 = st.selectbox('Fitur 1', ('Stok_1', 'Stok_2', 'Stok_3'))
-        fitur2 = st.selectbox('Fitur 2', ('Stok_1', 'Stok_2', 'Stok_3'))
-        fig = px.scatter(df, x=fitur1, y=fitur2, color='Stok_3', hover_data=df.columns)
+        fitur1 = st.selectbox('Fitur 1', ('Stok_1', 'Stok_2', 'Stok_3', 'Stok_4', 'Stok_5', 'Stok_6', 'Stok_7', 'Stok_8', 'Stok_9', 'Stok_10', 'Stok_11', 'Stok_12', 'Stok_13', 'Stok_14', 'Stok_15'))
+        fitur2 = st.selectbox('Fitur 2', ('Stok_1', 'Stok_2', 'Stok_3', 'Stok_4', 'Stok_5', 'Stok_6', 'Stok_7', 'Stok_8', 'Stok_9', 'Stok_10', 'Stok_11', 'Stok_12', 'Stok_13', 'Stok_14', 'Stok_15'))
+        fig = px.scatter(df, x=fitur1, y=fitur2, color='Stok_15', hover_data=df.columns)
         st.plotly_chart(fig)
 
 elif selected == "Prediction":
     with row0_1:
         st.subheader('Pengaturan Variabel')
     with row1_1:
-        option = st.selectbox("Pilih Variabel Dependent", ('Stok_1', 'Stok_2', 'Stok_3'))
+        option = st.selectbox("Pilih Variabel Dependent", ('', 'Stok_15'))
     with row3_0:
         button = st.button('Predict')
         if button:
@@ -77,22 +78,24 @@ elif selected == "Prediction":
             X = X.drop([option], axis=1)
             y = df[option]
             
-            model = joblib.load('model_svr.pkl')
-            y_pred = model.predict(X)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+            model = joblib.load('model_svr_new.pkl')
+            y_pred = model.predict(X_test)
             
             st.write('**Hasil Prediksi Penjualan pada bulan mendatang**')
-            result = pd.DataFrame({'Actual': y, 'Predicted': y_pred})
+            result = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
             st.write(result)
 
-            st.write('Mean Absolute Error:', round(metrics.mean_absolute_error(y, y_pred),3))
-            st.write('Mean Squared Error:', round(metrics.mean_squared_error(y, y_pred),3))
-            st.write('Root Mean Squared Error:', round(np.sqrt(metrics.mean_squared_error(y, y_pred)),3))
-            st.write('Coefficient of determination:', round(metrics.r2_score(y, y_pred),3))
+            st.write('Mean Absolute Error:', round(metrics.mean_absolute_error(y_test, y_pred),4))
+            st.write('Mean Squared Error:', round(metrics.mean_squared_error(y_test, y_pred),4))
+            st.write('Root Mean Squared Error:', round(np.sqrt(metrics.mean_squared_error(y_test, y_pred)),4))
+            st.write('Coefficient of determination:', round(metrics.r2_score(y_test, y_pred),4))
             st.write('')
 
             st.markdown("Analisis hasil metrik yang diberikan memberikan gambaran tentang seberapa baik model prediksi penjualan barang Almey Petshop menggunakan Support Vector Regression (SVR) dalam memprediksi penjualan. Berikut adalah penjelasan untuk setiap metrik:")
-            st.markdown("1. **Mean Absolute Error (MAE):** MAE adalah rata-rata dari selisih absolut antara nilai prediksi dan nilai sebenarnya. Dalam konteks ini, MAE sebesar 0.998 menunjukkan bahwa rata-rata kesalahan prediksi penjualan adalah sekitar 0.998. Semakin rendah nilai MAE, semakin baik performa model, karena nilai yang lebih rendah menandakan bahwa prediksi lebih dekat dengan nilai sebenarnya.")
-            st.markdown("2. **Mean Squared Error (MSE):** MSE adalah rata-rata dari kuadrat dari selisih antara nilai prediksi dan nilai sebenarnya. MSE sebesar 10.7 menunjukkan bahwa rata-rata dari kuadrat kesalahan prediksi penjualan adalah sekitar 10.7. Sama seperti MAE, semakin rendah nilai MSE, semakin baik performa model.")
-            st.markdown("3. **Root Mean Squared Error (RMSE):** RMSE adalah akar kuadrat dari MSE. Dalam hal ini, RMSE sebesar 3.271 menunjukkan bahwa rata-rata kesalahan prediksi penjualan dalam satuan penjualan adalah sekitar 3.271. RMSE memberikan gambaran yang lebih intuitif tentang seberapa jauh prediksi dari nilai sebenarnya, karena memiliki satuan yang sama dengan variabel yang diprediksi. Sebagai aturan praktis, semakin rendah nilai RMSE, semakin baik performa model.")
-            st.markdown("4. **Coefficient of Determination (R-squared):** Koefisien determinasi, atau R-squared, mengukur seberapa baik variabilitas dalam data yang dapat dijelaskan oleh model. Nilai R-squared sebesar 0.987 menunjukkan bahwa sekitar 98.7% variabilitas dalam data penjualan dapat dijelaskan oleh model. Nilai R-squared yang mendekati 1 menandakan bahwa model secara baik memodelkan data penjualan.")
-            st.markdown("Secara keseluruhan, metrik-metrik ini menunjukkan bahwa model SVR yang digunakan dalam aplikasi prediksi penjualan barang Almey Petshop memiliki performa yang sangat baik. Hal ini ditunjukkan oleh tingkat kesalahan yang rendah (rendah MAE, MSE, dan RMSE) dan tingkat penjelasan variabilitas yang tinggi (tinggi R-squared). Oleh karena itu, dapat disimpulkan bahwa **model ini efektif** dalam memprediksi penjualan barang Almey Petshop berdasarkan faktor-faktor yang diberikan.")
+            st.markdown("1. **Mean Absolute Error (MAE):** MAE adalah rata-rata dari selisih absolut antara nilai prediksi dan nilai sebenarnya. Nilai MAE yang rendah menunjukkan bahwa prediksi model cukup akurat. Dalam hal ini, MAE sekitar 0.066 menunjukkan bahwa rata-rata kesalahan prediksi model adalah sekitar 0.066 unit, yang cukup kecil.")
+            st.markdown("2. **Mean Squared Error (MSE):** MSE adalah rata-rata dari selisih kuadrat antara nilai prediksi dan nilai sebenarnya. Nilai MSE yang rendah menunjukkan bahwa model memiliki sedikit kesalahan dan penalti yang lebih besar diberikan pada kesalahan yang lebih besar. MSE sekitar 0.0056 menunjukkan bahwa kesalahan kuadrat rata-rata model juga sangat rendah.")
+            st.markdown("3. **Root Mean Squared Error (RMSE):** RMSE adalah akar dari MSE dan memberikan ukuran yang lebih mudah diinterpretasikan karena berada dalam skala yang sama dengan data asli. RMSE sekitar 0.075 menunjukkan bahwa kesalahan prediksi model secara rata-rata adalah sekitar 0.075 unit, yang menunjukkan akurasi model yang baik.")
+            st.markdown("4. **Coefficient of Determination (R-squared):** R² mengukur seberapa baik model menjelaskan variasi dalam data yang diamati. Nilai R² berkisar antara 0 dan 1, dengan 1 menunjukkan bahwa model menjelaskan seluruh variasi dalam data. Nilai R² sebesar 1.00 menunjukkan bahwa model Anda mampu menjelaskan 100% variasi dalam data yang diamati, yang merupakan hasil yang sangat ideal dan menunjukkan model yang sempurna.")
+            st.markdown("Secara keseluruhan, metrik-metrik ini menunjukkan bahwa model yang Anda gunakan memiliki kinerja yang sangat baik dengan kesalahan prediksi yang sangat rendah dan kemampuan yang sempurna dalam menjelaskan variasi data. Namun, penting untuk memastikan bahwa model ini tidak overfitting dengan memverifikasi kinerjanya pada data uji atau validasi yang independen.")
